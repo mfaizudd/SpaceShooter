@@ -12,10 +12,6 @@ public class Mover : MonoBehaviour
     private void Start()
     {
         rigid = GetComponent<Rigidbody>();
-    }
-
-    private void FixedUpdate()
-    {
-        rigid.velocity = Vector3.forward * speed;
+        rigid.velocity = transform.forward * speed;
     }
 }

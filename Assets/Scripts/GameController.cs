@@ -1,12 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
     [SerializeField]
-    private GameObject hazard;
+    private GameObject[] hazards;
     [SerializeField]
     private Vector3 spawnValues;
     [SerializeField]
@@ -24,6 +25,7 @@ public class GameController : MonoBehaviour
 
     private static GameController instance;
     private int score;
+    private bool gameOver;
 
     public static GameController Instance
     {
@@ -50,7 +52,7 @@ public class GameController : MonoBehaviour
         private set
         {
             score = value;
-            scoreText.text = "Score: " + score;
+            scoreText.text = $"Score: {score} \nHigh Score:  {PlayerPrefs.GetInt("highScore", 0)}";
         }
     }
 
@@ -65,6 +67,14 @@ public class GameController : MonoBehaviour
         StartCoroutine(SpawnHazard());
     }
 
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.R) && gameOver)
+        {
+            SceneManager.LoadScene("Game");
+        }
+    }
+
     IEnumerator SpawnHazard()
     {
         yield return new WaitForSeconds(startWait);
@@ -72,12 +82,19 @@ public class GameController : MonoBehaviour
         {
             for (int i = 0; i < Random.Range(5, 10); i++)
             {
+                var hazard = hazards[Random.Range(0, hazards.Length)];
                 Vector3 spawnPosition = new Vector3(Random.Range(-spawnValues.x, spawnValues.x), spawnValues.y, spawnValues.z);
                 Quaternion spawnRotation = Quaternion.identity;
                 Instantiate(hazard, spawnPosition, spawnRotation);
                 yield return new WaitForSeconds(hazardWait);
             }
             yield return new WaitForSeconds(waveWait);
+            if (gameOver)
+            {
+                restartText.gameObject.SetActive(true);
+                gameOverText.gameObject.SetActive(true);
+                break;
+            }
         }
     }
 
@@ -88,8 +105,11 @@ public class GameController : MonoBehaviour
 
     public void GameOver()
     {
-        restartText.gameObject.SetActive(true);
-        gameOverText.gameObject.SetActive(true);
+        gameOver = true;
+        if(Score > PlayerPrefs.GetInt("highScore", 0))
+        {
+            PlayerPrefs.SetInt("highScore", score);
+        }
     }
 
 }
